@@ -80,7 +80,6 @@
 
 #endif
 
-#include "errors.h"      // Donut errors
 #include "hash.h"        // api hashing
 #include "encrypt.h"     // symmetric encryption of instance+module
 #include "format.h"      // output format for loader
@@ -110,6 +109,30 @@ typedef struct _GUID {
 
 #define DONUT_KEY_LEN                    16
 #define DONUT_BLK_LEN                    16
+
+#define DONUT_ERROR_OK                   0
+#define DONUT_ERROR_FILE_NOT_FOUND       1
+#define DONUT_ERROR_FILE_EMPTY           2
+#define DONUT_ERROR_FILE_ACCESS          3
+#define DONUT_ERROR_FILE_INVALID         4
+#define DONUT_ERROR_NET_PARAMS           5
+#define DONUT_ERROR_NO_MEMORY            6
+#define DONUT_ERROR_INVALID_ARCH         7
+#define DONUT_ERROR_INVALID_URL          8
+#define DONUT_ERROR_URL_LENGTH           9
+#define DONUT_ERROR_INVALID_PARAMETER   10
+#define DONUT_ERROR_RANDOM              11
+#define DONUT_ERROR_DLL_FUNCTION        12
+#define DONUT_ERROR_ARCH_MISMATCH       13
+#define DONUT_ERROR_DLL_PARAM           14
+#define DONUT_ERROR_BYPASS_INVALID      15
+#define DONUT_ERROR_INVALID_FORMAT      16
+#define DONUT_ERROR_INVALID_ENGINE      17
+#define DONUT_ERROR_COMPRESSION         18
+#define DONUT_ERROR_INVALID_ENTROPY     19
+#define DONUT_ERROR_MIXED_ASSEMBLY      20
+#define DONUT_ERROR_HEADERS_INVALID     21
+#define DONUT_ERROR_DECOY_INVALID       22
 
 // target architecture
 #define DONUT_ARCH_ANY                  -1  // for vbs and js files
@@ -167,7 +190,6 @@ typedef struct _GUID {
 #define DONUT_HEADERS_KEEP               2  // Preserve PE headers
 
 #define DONUT_MAX_NAME                 256  // maximum length of string for domain, class, method and parameter names
-#define DONUT_MAX_NAME_ARG             1024
 #define DONUT_MAX_DLL                    8  // maximum number of DLL supported by instance
 #define DONUT_MAX_MODNAME                8
 #define DONUT_SIG_LEN                    8  // 64-bit string to verify decryption ok
@@ -230,12 +252,14 @@ typedef struct _DONUT_MODULE {
     int      thread;                          // run entrypoint of unmanaged EXE as a thread
     int      compress;                        // indicates engine used for compression
     
-    char     runtime[DONUT_MAX_NAME];         // runtime version for .NET EXE/DLL
+    char     runtime[DONUT_MAX_NAME];       // runtime version for .NET EXE/DLL
+    char     runtime2[sizeof(DONUT_RUNTIME_NET2)];   // runtime version for .NET EXE/DLL
+    char     runtime4[sizeof(DONUT_RUNTIME_NET4)];   // runtime version for .NET EXE/DLL
     char     domain[DONUT_MAX_NAME];          // domain name to use for .NET EXE/DLL
     char     cls[DONUT_MAX_NAME];             // name of class and optional namespace for .NET EXE/DLL
     char     method[DONUT_MAX_NAME];          // name of method to invoke for .NET DLL or api for unmanaged DLL
     
-    char     args[DONUT_MAX_NAME_ARG];            // string arguments for both managed and unmanaged DLL/EXE
+    char     args[DONUT_MAX_NAME];            // string arguments for both managed and unmanaged DLL/EXE
     int      unicode;                         // convert param to unicode for unmanaged DLL function
     
     char     sig[DONUT_SIG_LEN];              // string to verify decryption
@@ -440,7 +464,7 @@ typedef struct _DONUT_CONFIG {
     char            method[DONUT_MAX_NAME];   // name of method or DLL function to invoke for .NET DLL and unmanaged DLL
     
     // command line for DLL/EXE
-    char            args[DONUT_MAX_NAME_ARG];    // command line to use for unmanaged DLL/EXE and .NET DLL/EXE
+    char            args[DONUT_MAX_NAME];    // command line to use for unmanaged DLL/EXE and .NET DLL/EXE
     int             unicode;                  // param is passed to DLL function without converting to unicode
 
     // module overloading stuff

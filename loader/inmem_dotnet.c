@@ -37,7 +37,8 @@ BOOL LoadAssembly(PDONUT_INSTANCE inst, PDONUT_MODULE mod, PDONUT_ASSEMBLY pa) {
     DWORD           i;
     BOOL            loaded=FALSE, loadable;
     PBYTE           p;
-    WCHAR           buf[DONUT_MAX_NAME_ARG];
+    WCHAR           buf[DONUT_MAX_NAME];
+    char*           runtimes[3] = {mod->runtime4,mod->runtime2,mod->runtime};
     
     if(inst->api.CLRCreateInstance != NULL) {
       DPRINT("CLRCreateInstance");
@@ -48,12 +49,16 @@ BOOL LoadAssembly(PDONUT_INSTANCE inst, PDONUT_MODULE mod, PDONUT_ASSEMBLY pa) {
        (LPVOID*)&pa->icmh);
       
       if(SUCCEEDED(hr)) {
-        DPRINT("ICLRMetaHost::GetRuntime(\"%s\")", mod->runtime);
-        ansi2unicode(inst, mod->runtime, buf);
+        for(i = 0;i < 3;i++){
+          DPRINT("ICLRMetaHost::GetRuntime(\"%s\")", runtimes[i]);
+          ansi2unicode(inst, runtimes[i], buf);
+          
+          hr = pa->icmh->lpVtbl->GetRuntime(
+            pa->icmh, buf, 
+            (REFIID)&inst->xIID_ICLRRuntimeInfo, (LPVOID)&pa->icri);
+          if(SUCCEEDED(hr)) break;  
+        }
         
-        hr = pa->icmh->lpVtbl->GetRuntime(
-          pa->icmh, buf, 
-          (REFIID)&inst->xIID_ICLRRuntimeInfo, (LPVOID)&pa->icri);
         
         if(SUCCEEDED(hr)) {
           DPRINT("ICLRRuntimeInfo::IsLoadable");
@@ -167,7 +172,7 @@ BOOL RunAssembly(PDONUT_INSTANCE inst, PDONUT_MODULE mod, PDONUT_ASSEMBLY pa) {
     ULONG         cnt;
     OLECHAR       str[1]={0};
     LONG          ucnt, lcnt;
-    WCHAR         **argv, buf[DONUT_MAX_NAME_ARG+1];
+    WCHAR         **argv, buf[DONUT_MAX_NAME+1];
     int           argc;
     
     DPRINT("Type is %s", 
